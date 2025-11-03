@@ -104,9 +104,14 @@ jobs:
           sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm; test $? -eq 0 && touch /tmp/.vinylbuild'
           test $(git -C /tmp/vinyl status -s PKGBUILD | wc -l) -gt 0 && echo "vinyl_MODIFIED=true" >> "$GITHUB_ENV"
           test -f /tmp/.vinylbuild && echo "vinyl_BUILD_STATUS=0" >> "$GITHUB_ENV"
+      
+      - name: Publish AUR package vinyl
+        if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
+        run: |
+          echo "publish required"
 
-          echo env.vinyl_MODIFIED
 
+      
       # - name: Publish AUR package vinyl
       #   if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
       #   run: |
