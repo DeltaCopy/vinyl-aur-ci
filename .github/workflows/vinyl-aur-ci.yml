@@ -84,8 +84,8 @@ jobs:
             
             sha256sum_vinyl=$(curl -Ls $BUILD_REPO/archive/refs/tags/v${latest_tag}.tar.gz | sha256sum | awk {'print $1'})
 
-            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/PKGBUILD
-            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp.SRCINFO
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/PKGBUILD
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/.SRCINFO
 
           fi
 
@@ -93,7 +93,7 @@ jobs:
 
       - name: Print pkgbuild & .srcinfo
         run: |
-          cat /tmp/PKGBUILD
+          cat /tmp/vinyl/PKGBUILD
           cat /tmp/vinyl/.SRCINFO
 
       - name: Set parallel makeflags
@@ -104,6 +104,8 @@ jobs:
           sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm; test $? -eq 0 && touch /tmp/.vinylbuild'
           test $(git -C /tmp/vinyl status -s PKGBUILD | wc -l) -gt 0 && echo "vinyl_MODIFIED=true" >> "$GITHUB_ENV"
           test -f /tmp/.vinylbuild && echo "vinyl_BUILD_STATUS=0" >> "$GITHUB_ENV"
+
+          echo env.vinyl_MODIFIED
 
       # - name: Publish AUR package vinyl
       #   if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
