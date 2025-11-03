@@ -1,11 +1,10 @@
 # Maintainer: DeltaCopy <7x0bb03yq@mozmail.com>
 # Description: Builds Vinyl theme from https://github.com/ekaaty/vinyl-theme
-# PKGBUILD issues: https://github.com/DeltaCopy/vinyl-git-aur
 
 # basic info
-pkgname="vinyl-git"
-_pkgname="vinyl"
-pkgver=r159.ed4afaa
+pkgname="vinyl"
+_gitname="vinyl-theme"
+pkgver=${version}
 pkgrel=1
 pkgdesc="Vinyl Theme for KDE Plasma 6"
 url="https://github.com/ekaaty/vinyl-theme"
@@ -23,10 +22,10 @@ makedepends=(
 options=(!emptydirs !debug)
 
 source=(
-    "${_pkgname}.git::git+${url}.git"
+    "${url}/archive/refs/tags/v${version}.tar.gz"
 )
 
-sha256sums=('SKIP')
+sha256sums=('${sha256sums}')
 
 depends=(
   'kdecoration'
@@ -49,21 +48,12 @@ depends=(
 
 depends=("${depends[@]}")
 
-provides=("vinyl-git")
-
-pkgver() {
-  cd "$srcdir/$_pkgname.git"
-  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
-}
-
-prepare() {
-  cd "$srcdir/$_pkgname.git"
-}
+conflicts=("vinyl-git")
 
 build() (
   local cmake_options=(
     -B $build_dir
-    -S "$_pkgname.git"
+    -S "$_gitname-${pkgver}"
     -DBUILD_TESTING=OFF
     -Wno-dev
   )

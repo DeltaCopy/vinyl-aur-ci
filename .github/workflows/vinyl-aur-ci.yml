@@ -1,0 +1,114 @@
+# Build Vinyl and publish release
+name: Vinyl AUR CI
+on: workflow_dispatch
+env:
+  AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
+  GIT_USER: DeltaCopy
+  GIT_EMAIL: 7x0bb03yq@mozmail.com
+  PACKAGE_UTILS_REPO: plasma-aur-packager
+  BUILD_REPO: https://github.com/ekaaty/vinyl-theme
+jobs:
+  vinyl-aur-ci:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Checkout local
+        uses: actions/checkout@v4.2.0
+        with:
+          repository: ${{ github.repository }}
+          sparse-checkout: .github/assets
+          sparse-checkout-cone-mode: false
+
+      - name: Initialize pacman-key
+        run: pacman-key --init
+
+      - name: System update
+        run: pacman -Syu --noconfirm
+
+      - name: Install additional packages
+        run: |
+          # python is required for running the python utils packager.py script
+          # openssh required for creating the ssh aur config
+          # base-devel includes build dependencies (fakeroot, make, gcc, pkgconf)
+          pacman -Syq base-devel openssh git python --noconfirm
+
+      - name: Setup build user
+        run: |
+          useradd --create-home --shell /bin/bash builduser -m # Create the builduser
+          passwd -d builduser # Delete the buildusers password
+          printf 'builduser ALL=(ALL) ALL\n' | tee -a /etc/sudoers # Allow the builduser passwordless sudo
+
+      - name: Create SSH AUR config & clone
+        env:
+          AUR_PRIV: ${{ secrets.AUR_P1 }}
+        run: |
+          mkdir -p /home/builduser/.ssh
+          touch /home/builduser/.ssh/known_hosts
+          cp $GITHUB_WORKSPACE/.github/assets/ssh_config /home/builduser/.ssh/config
+
+          chmod -vR 600 /home/builduser/.ssh/* 
+
+          ssh-keyscan -v -t rsa,ecdsa,ed25519 aur.archlinux.org >>/home/builduser/.ssh/known_hosts
+
+          echo "$AUR_PRIV" > /home/builduser/.ssh/aur
+          chmod -R 600 /home/builduser/.ssh/aur*
+
+          ssh-keygen -vy -f /home/builduser/.ssh/aur > /home/builduser/.ssh/aur.pub
+
+          chown -vR builduser:builduser /home/builduser
+
+      - name: Git clone AUR repos
+        run: |
+          sudo -u builduser bash -c 'git clone ${{ env.AUR_VINYL_REPO }} /tmp/vinyl'
+
+          git config --global --add safe.directory '/tmp/vinyl'
+
+
+          git config --global user.name ${{ env.GIT_USER}}
+          git config --global user.email ${{ env.GIT_EMAIL}}
+
+      - name: Update package files
+        run: |
+          latest_release_tag=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $BUILD_REPO '*.*' \
+                      | tail --lines=1 | cut --delimiter='/' --fields=3)
+
+
+
+          cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
+          cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
+
+          if [ ! -z $latest_release_tag ]; then
+            latest_tag=$(echo $latest_tag | sed 's/v//')
+            sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/PKGBUILD
+            sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/.SRCINFO
+            
+            sha256sum_vinyl=$(curl -Ls $BUILD_REPO/archive/refs/tags/v${latest_tag}.tar.gz | sha256sum | awk {'print $1'})
+
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/PKGBUILD
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp.SRCINFO
+
+          fi
+
+          chown -R builduser:builduser /tmp/vinyl
+
+      - name: Print pkgbuild & .srcinfo
+        run: |
+          cat /tmp/PKGBUILD
+          cat /tmp/vinyl/.SRCINFO
+
+      - name: Set parallel makeflags
+        run: sed -i 's/.*MAKEFLAGS=.*/MAKEFLAGS="-j $(nproc)"/' /etc/makepkg.conf
+
+      - name: Test vinyl build & install
+        run: |
+          sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm; test $? -eq 0 && touch /tmp/.vinylbuild'
+          test $(git -C /tmp/vinyl status -s PKGBUILD | wc -l) -gt 0 && echo "vinyl_MODIFIED=true" >> "$GITHUB_ENV"
+          test -f /tmp/.vinylbuild && echo "vinyl_BUILD_STATUS=0" >> "$GITHUB_ENV"
+
+      # - name: Publish AUR package vinyl
+      #   if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
+      #   run: |
+      #     sudo -u builduser bash -c 'cd /tmp/vinyl; git remote add aur "ssh://aur@aur.archlinux.org/vinyl.git"; \
+      #     git config --global user.name ${{ env.GIT_USER}}
+      #     git config --global user.email ${{ env.GIT_EMAIL}}
+      #     git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'

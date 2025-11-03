@@ -1,6 +1,6 @@
-pkgbase = vinyl-git
+pkgbase = vinyl
 	pkgdesc = Vinyl Theme for KDE Plasma 6
-	pkgver = r159.ed4afaa
+	pkgver = ${version}
 	pkgrel = 1
 	url = https://github.com/ekaaty/vinyl-theme
 	arch = x86_64
@@ -25,10 +25,10 @@ pkgbase = vinyl-git
 	depends = python-lxml
 	depends = xorg-xcursorgen
 	depends = libplasma>=6.3.0
-	provides = vinyl-git
+	conflicts = vinyl-git
 	options = !emptydirs
 	options = !debug
-	source = vinyl.git::git+https://github.com/ekaaty/vinyl-theme.git
-	sha256sums = SKIP
+	source = https://github.com/ekaaty/vinyl-theme/archive/refs/tags/v${version}.tar.gz
+	sha256sums = ${sha256sums}
 
-pkgname = vinyl-git
+pkgname = vinyl
