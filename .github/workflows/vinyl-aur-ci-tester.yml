@@ -1,0 +1,44 @@
+# Build Vinyl and publish release
+name: Vinyl AUR CI Tester
+on: workflow_dispatch
+jobs:
+  vinyl-aur-tester:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Checkout local
+        uses: actions/checkout@v4.2.0
+        with:
+          repository: ${{ github.repository }}
+          sparse-checkout-cone-mode: false
+      
+      - name: Initialize pacman-key
+        run: pacman-key --init
+
+      - name: System update
+        run: pacman -Syu --noconfirm
+
+      - name: Install base-devel package
+        run: |
+          # base-devel includes build dependencies (fakeroot, make, gcc, pkgconf)
+          pacman -Syq base-devel --noconfirm
+
+      - name: Setup build user
+        run: |
+          useradd --create-home --shell /bin/bash builduser -m # Create the builduser
+          passwd -d builduser # Delete the buildusers password
+          printf 'builduser ALL=(ALL) ALL\n' | tee -a /etc/sudoers # Allow the builduser passwordless sudo
+
+      - name: Set parallel makeflags
+        run: sed -i 's/.*MAKEFLAGS=.*/MAKEFLAGS="-j $(nproc)"/' /etc/makepkg.conf
+
+      - name: Copy pkgbuild files for vinyl to /tmp for builduser to access
+        run: |
+          mkdir /tmp/vinyl
+          cp -f PKGBUILD /tmp/vinyl
+          cp -f .SRCINFO /tmp/vinyl
+          chown -R builduser:builduser /tmp/vinyl
+
+      - name: Test vinyl build & install
+        run: |
+          sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm'
