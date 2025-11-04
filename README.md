@@ -1,6 +1,6 @@
 # vinyl-aur-ci
 
-AUR PKGBUILD for Vinyl a Plasma QT6 application style
+Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD for vinyl AUR packages.
 
 Upstream: https://github.com/ekaaty/vinyl-theme
 
