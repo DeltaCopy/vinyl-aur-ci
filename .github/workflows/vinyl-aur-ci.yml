@@ -74,7 +74,6 @@ jobs:
                       | tail --lines=1 | cut --delimiter='/' --fields=3)
 
 
-
           cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
           cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
 
