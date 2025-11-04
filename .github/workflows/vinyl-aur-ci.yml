@@ -29,10 +29,9 @@ jobs:
 
       - name: Install additional packages
         run: |
-          # python is required for running the python utils packager.py script
           # openssh required for creating the ssh aur config
           # base-devel includes build dependencies (fakeroot, make, gcc, pkgconf)
-          pacman -Syq base-devel openssh git python --noconfirm
+          pacman -Syq base-devel openssh git --noconfirm
 
       - name: Setup build user
         run: |
@@ -104,13 +103,17 @@ jobs:
       - name: Test vinyl build & install
         run: |
           sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm; test $? -eq 0 && touch /tmp/.vinylbuild'
-          test $(git -C /tmp/vinyl status -s PKGBUILD | wc -l) -gt 0 && echo "vinyl_MODIFIED=true" >> "$GITHUB_ENV"
-          test -f /tmp/.vinylbuild && echo "vinyl_BUILD_STATUS=0" >> "$GITHUB_ENV"
+          echo "VINYL_MODIFIED=$(git -C /tmp/vinyl status -s PKGBUILD | wc -l)" >> "$GITHUB_ENV"
 
       - name: Publish AUR package vinyl
-        if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
+        if: env.VINYL_MODIFIED == 1
         run: |
-          sudo -u builduser bash -c 'cd /tmp/vinyl; git remote add aur "ssh://aur@aur.archlinux.org/vinyl.git"; \
-          git config --global user.name ${{ env.GIT_USER}}
-          git config --global user.email ${{ env.GIT_EMAIL}}
-          git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'
+          echo "Changes found, publish required."
+          if [ -f  /tmp/.vinylbuild ]; then
+            sudo -u builduser bash -c 'cd /tmp/vinyl; git remote add aur "ssh://aur@aur.archlinux.org/vinyl.git"; \
+            git config --global user.name ${{ env.GIT_USER}}
+            git config --global user.email ${{ env.GIT_EMAIL}}
+            git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'
+          fi
+
+          
