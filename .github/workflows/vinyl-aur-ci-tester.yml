@@ -1,6 +1,8 @@
 # Build Vinyl and publish release
 name: Vinyl AUR CI Tester
 on: workflow_dispatch
+env:
+  BUILD_REPO: https://github.com/ekaaty/vinyl-theme
 jobs:
   vinyl-aur-ci-tester:
     runs-on: ubuntu-latest
@@ -39,7 +41,7 @@ jobs:
 
 
           mkdir -p /tmp/vinyl
-          
+
           cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
           cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
 

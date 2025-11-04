@@ -7,7 +7,6 @@ env:
   AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
   GIT_USER: DeltaCopy
   GIT_EMAIL: 7x0bb03yq@mozmail.com
-  PACKAGE_UTILS_REPO: plasma-aur-packager
   BUILD_REPO: https://github.com/ekaaty/vinyl-theme
 jobs:
   vinyl-aur-ci:
