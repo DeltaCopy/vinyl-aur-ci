@@ -1,6 +1,8 @@
 # Build Vinyl and publish release
 name: Vinyl AUR CI
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: "0 00 * * *" # At 00:00 daily
 env:
   AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
   GIT_USER: DeltaCopy
@@ -104,18 +106,11 @@ jobs:
           sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm; test $? -eq 0 && touch /tmp/.vinylbuild'
           test $(git -C /tmp/vinyl status -s PKGBUILD | wc -l) -gt 0 && echo "vinyl_MODIFIED=true" >> "$GITHUB_ENV"
           test -f /tmp/.vinylbuild && echo "vinyl_BUILD_STATUS=0" >> "$GITHUB_ENV"
-      
+
       - name: Publish AUR package vinyl
         if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
         run: |
-          echo "publish required"
-
-
-      
-      # - name: Publish AUR package vinyl
-      #   if: env.vinyl_BUILD_STATUS == 0 && env.vinyl_MODIFIED == 'true'
-      #   run: |
-      #     sudo -u builduser bash -c 'cd /tmp/vinyl; git remote add aur "ssh://aur@aur.archlinux.org/vinyl.git"; \
-      #     git config --global user.name ${{ env.GIT_USER}}
-      #     git config --global user.email ${{ env.GIT_EMAIL}}
-      #     git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'
+          sudo -u builduser bash -c 'cd /tmp/vinyl; git remote add aur "ssh://aur@aur.archlinux.org/vinyl.git"; \
+          git config --global user.name ${{ env.GIT_USER}}
+          git config --global user.email ${{ env.GIT_EMAIL}}
+          git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'
