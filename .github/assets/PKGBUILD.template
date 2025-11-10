@@ -16,7 +16,10 @@ build_dir="build_kf6"
 makedepends=(
   'cmake'
   'extra-cmake-modules>=6.13.0'
-  'git'
+  'python'
+  'python-cairosvg'
+  'python-lxml'
+  'xorg-xcursorgen'
 )
 
 options=(!emptydirs !debug)
@@ -40,9 +43,6 @@ depends=(
   'kdoctools'
   'kpackage'
   'frameworkintegration'
-  'python-cairosvg'
-  'python-lxml'
-  'xorg-xcursorgen'
   'libplasma>=6.3.0'
 )
 
