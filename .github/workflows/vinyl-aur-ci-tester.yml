@@ -1,0 +1,64 @@
+# Build Vinyl and publish release
+name: Vinyl AUR CI Tester
+on: workflow_dispatch
+env:
+  BUILD_REPO: https://github.com/ekaaty/vinyl-theme
+jobs:
+  vinyl-aur-ci-tester:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Checkout local
+        uses: actions/checkout@v4.2.0
+        with:
+          repository: ${{ github.repository }}
+          sparse-checkout-cone-mode: false
+
+      - name: Initialize pacman-key
+        run: pacman-key --init
+
+      - name: System update
+        run: pacman -Syu --noconfirm
+
+      - name: Install base-devel and git packages
+        run: |
+          # base-devel includes build dependencies (fakeroot, make, gcc, pkgconf)
+          pacman -Syq base-devel git --noconfirm
+
+      - name: Setup build user
+        run: |
+          useradd --create-home --shell /bin/bash builduser -m # Create the builduser
+          passwd -d builduser # Delete the buildusers password
+          printf 'builduser ALL=(ALL) ALL\n' | tee -a /etc/sudoers # Allow the builduser passwordless sudo
+
+      - name: Set parallel makeflags
+        run: sed -i 's/.*MAKEFLAGS=.*/MAKEFLAGS="-j $(nproc)"/' /etc/makepkg.conf
+
+      - name: Update package files
+        run: |
+          latest_release_tag=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $BUILD_REPO '*.*' \
+                      | tail --lines=1 | cut --delimiter='/' --fields=3)
+
+
+          mkdir -p /tmp/vinyl
+
+          cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
+          cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
+
+          if [ ! -z $latest_release_tag ]; then
+            latest_tag=$(echo $latest_release_tag | sed 's/v//')
+            sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/PKGBUILD
+            sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/.SRCINFO
+            
+            sha256sum_vinyl=$(curl -Ls $BUILD_REPO/archive/refs/tags/v${latest_tag}.tar.gz | sha256sum | awk {'print $1'})
+
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/PKGBUILD
+            sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/.SRCINFO
+
+          fi
+
+          chown -R builduser:builduser /tmp/vinyl
+
+      - name: Test vinyl build & install
+        run: |
+          sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm'
