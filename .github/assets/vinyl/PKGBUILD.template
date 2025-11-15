@@ -48,7 +48,7 @@ depends=(
 depends=("${depends[@]}")
 
 conflicts=(
-  'vinyl-git
+  'vinyl-git'
   'vinyl-theme'
 )
 
