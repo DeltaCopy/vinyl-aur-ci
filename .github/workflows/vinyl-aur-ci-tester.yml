@@ -42,8 +42,8 @@ jobs:
 
           mkdir -p /tmp/vinyl
 
-          cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
-          cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
+          cp $GITHUB_WORKSPACE/.github/assets/vinyl/PKGBUILD.template /tmp/vinyl/PKGBUILD  
+          cp $GITHUB_WORKSPACE/.github/assets/vinyl/.SRCINFO.template /tmp/vinyl/.SRCINFO
 
           if [ ! -z $latest_release_tag ]; then
             latest_tag=$(echo $latest_release_tag | sed 's/v//')
