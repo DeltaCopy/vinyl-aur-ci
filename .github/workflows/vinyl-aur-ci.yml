@@ -1,6 +1,8 @@
 # Build Vinyl and publish release
 name: Vinyl AUR CI
-on: workflow_dispatch
+on:
+  schedule:
+    - cron: "0 00 * * *" # At 00:00 daily
 env:
   AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
   GIT_USER: DeltaCopy
@@ -112,5 +114,3 @@ jobs:
             git config --global user.email ${{ env.GIT_EMAIL}}
             git add -fv PKGBUILD .SRCINFO && git commit -m "[GitHub DeltaCopy/vinyl-aur-ci]: Version ${{ env.RELEASE_VERSION }}" && git push -v aur master'
           fi
-
-          
