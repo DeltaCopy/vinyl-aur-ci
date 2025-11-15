@@ -1,8 +1,6 @@
 # Build Vinyl and publish release
 name: Vinyl AUR CI
-on:
-  schedule:
-    - cron: "0 00 * * *" # At 00:00 daily
+on: workflow_dispatch
 env:
   AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
   GIT_USER: DeltaCopy
@@ -73,8 +71,8 @@ jobs:
                       | tail --lines=1 | cut --delimiter='/' --fields=3)
 
 
-          cp $GITHUB_WORKSPACE/.github/assets/PKGBUILD.template /tmp/vinyl/PKGBUILD  
-          cp $GITHUB_WORKSPACE/.github/assets/.SRCINFO.template /tmp/vinyl/.SRCINFO
+          cp $GITHUB_WORKSPACE/.github/assets/vinyl/PKGBUILD.template /tmp/vinyl/PKGBUILD  
+          cp $GITHUB_WORKSPACE/.github/assets/vinyl/.SRCINFO.template /tmp/vinyl/.SRCINFO
 
           if [ ! -z $latest_release_tag ]; then
             latest_tag=$(echo $latest_release_tag | sed 's/v//')

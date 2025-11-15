@@ -47,7 +47,10 @@ depends=(
 
 depends=("${depends[@]}")
 
-conflicts=("vinyl-git", "vinyl-theme")
+conflicts=(
+  'vinyl-git
+  'vinyl-theme'
+)
 
 build() (
   local cmake_options=(
