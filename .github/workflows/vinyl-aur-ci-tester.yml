@@ -59,6 +59,9 @@ jobs:
 
           chown -R builduser:builduser /tmp/vinyl
 
+          echo "Print vinyl pkgbuild"
+          cat /tmp/vinyl/PKGBUILD
+
       - name: Test vinyl build & install
         run: |
           sudo -u builduser bash -c 'cd /tmp/vinyl; makepkg -si --noconfirm'
