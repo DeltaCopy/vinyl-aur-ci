@@ -1,9 +1,14 @@
-# vinyl-aur-ci
+  # darkly-aur-ci
 
-Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD for vinyl AUR packages.
+  Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
 
-Upstream: https://github.com/ekaaty/vinyl-theme
+  Upstream repository:  https://github.com/ekaaty/vinyl-theme
 
-AUR package: https://aur.archlinux.org/packages/vinyl
+  AUR packages:
 
-[![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
+  - https://aur.archlinux.org/packages/vinyl
+
+  [![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
+
+  ## Latest version
+  null
