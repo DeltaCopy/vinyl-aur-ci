@@ -1,25 +1,72 @@
 # Build Vinyl and publish release
 name: Vinyl AUR CI
-on:
-  schedule:
-    - cron: "0 00 * * *" # At 00:00 daily
+on: workflow_dispatch
 env:
   AUR_VINYL_REPO: https://aur.archlinux.org/vinyl.git
   GIT_USER: DeltaCopy
   GIT_EMAIL: 7x0bb03yq@mozmail.com
   BUILD_REPO: https://github.com/ekaaty/vinyl-theme
+  REPO_DEV: ekaaty
+  REPO_NAME: vinyl-theme
 jobs:
-  vinyl-aur-ci:
+  GetLatestVersion:
     runs-on: ubuntu-latest
-    container: archlinux:latest
+    outputs:
+      VERSION: ${{ steps.step_version.outputs.VERSION }}
     steps:
+      - name: Install jq
+        run: sudo apt-get update -y && sudo apt-get install -y jq
+      - name: Get latest version
+        id: step_version
+        run: |
+          # get latest release tag from remote
+
+           latest_release_tag=$(curl -s https://api.github.com/repos/$REPO_DEV/$REPO_NAME/releases/latest |  jq -r '.tag_name')
+
+           echo "INFO: Latest tag = $latest_release_tag"
+
+           if [ ! -z $latest_release_tag ]; then
+             latest_tag=$(echo $latest_release_tag | sed 's/v//')
+             echo "VERSION=${latest_release_tag}" >> "$GITHUB_OUTPUT"
+           else
+             echo "Latest tag is unknown"
+             exit 1
+           fi
+
       - name: Checkout local
-        uses: actions/checkout@v4.2.0
+        uses: actions/checkout@v6.0.2
         with:
           repository: ${{ github.repository }}
-          sparse-checkout: .github/assets
-          sparse-checkout-cone-mode: false
 
+      - name: Update README
+        run: |
+          echo ${{ steps.step_version.outputs.VERSION }}
+          cat << EOF > README.md
+            # darkly-aur-ci
+
+            Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
+
+            Upstream repository:  https://github.com/ekaaty/vinyl-theme
+
+            AUR packages:
+
+            - https://aur.archlinux.org/packages/vinyl
+
+            [![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
+
+            ## Latest version
+            ${{ steps.step_version.outputs.VERSION }}
+          EOF
+          git config --global user.name $GIT_USER
+          git config --global user.email ecto1@duck.com
+          git add README.md
+          git commit --allow-empty -m "[Vinyl AUR CI]: Update version"
+          git push --force -v
+  UpdatePackages:
+    runs-on: ubuntu-latest
+    needs: GetLatestVersion
+    container: archlinux:latest
+    steps:
       - name: Initialize pacman-key
         run: pacman-key --init
 
@@ -69,9 +116,9 @@ jobs:
 
       - name: Update package files
         run: |
-          latest_release_tag=$(git -c 'versionsort.suffix=-' ls-remote --exit-code --refs --sort='version:refname' --tags $BUILD_REPO '*.*' \
-                      | tail --lines=1 | cut --delimiter='/' --fields=3)
+          echo ${{ needs.GetLatestVersion.outputs.VERSION }}
 
+          latest_tag=$(echo ${{ needs.GetLatestVersion.outputs.VERSION }}| sed 's/v//')
 
           cp $GITHUB_WORKSPACE/.github/assets/vinyl/PKGBUILD.template /tmp/vinyl/PKGBUILD  
           cp $GITHUB_WORKSPACE/.github/assets/vinyl/.SRCINFO.template /tmp/vinyl/.SRCINFO
@@ -82,7 +129,7 @@ jobs:
             sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/PKGBUILD
             sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/.SRCINFO
             
-            sha256sum_vinyl=$(curl -Ls $BUILD_REPO/archive/refs/tags/v${latest_tag}.tar.gz | sha256sum | awk {'print $1'})
+            sha256sum_vinyl=$(curl -Ls https://github.com/$REPO_DEV/$REPO_NAME/archive/refs/tags/v${latest_tag}.tar.gz | sha256sum | awk {'print $1'})
 
             sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/PKGBUILD
             sed -i 's/${sha256sums}/'${sha256sum_vinyl}'/' /tmp/vinyl/.SRCINFO
