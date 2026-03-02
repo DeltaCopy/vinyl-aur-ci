@@ -11,4 +11,4 @@
   [![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
 
   ## Latest version
-  null
+  v6.5.3
