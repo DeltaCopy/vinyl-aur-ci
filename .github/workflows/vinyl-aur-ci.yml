@@ -67,6 +67,13 @@ jobs:
     needs: GetLatestVersion
     container: archlinux:latest
     steps:
+      - name: Checkout local
+        uses: actions/checkout@v4.2.0
+        with:
+          repository: ${{ github.repository }}
+          sparse-checkout: .github/assets
+          sparse-checkout-cone-mode: false
+
       - name: Initialize pacman-key
         run: pacman-key --init
 
@@ -123,8 +130,7 @@ jobs:
           cp $GITHUB_WORKSPACE/.github/assets/vinyl/PKGBUILD.template /tmp/vinyl/PKGBUILD  
           cp $GITHUB_WORKSPACE/.github/assets/vinyl/.SRCINFO.template /tmp/vinyl/.SRCINFO
 
-          if [ ! -z $latest_release_tag ]; then
-            latest_tag=$(echo $latest_release_tag | sed 's/v//')
+          if [ ! -z $latest_tag ]; then
             echo "RELEASE_VERSION=${latest_tag}" >> "$GITHUB_ENV"
             sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/PKGBUILD
             sed -i 's/${version}/'${latest_tag}'/' /tmp/vinyl/.SRCINFO
