@@ -57,7 +57,8 @@ jobs:
             [![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
 
             ## Latest version
-            ${{ steps.step_version.outputs.VERSION }}
+            <img src="https://img.shields.io/badge/vinyl-${{ steps.step_version.outputs.VERSION }}-orange" alt="vinyl-${{ steps.step_version.outputs.VERSION }}">
+            
           EOF
           git config --global user.name $GIT_USER
           git config --global user.email ecto1@duck.com
