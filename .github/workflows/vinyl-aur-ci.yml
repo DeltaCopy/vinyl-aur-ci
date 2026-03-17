@@ -44,7 +44,7 @@ jobs:
         run: |
           echo ${{ steps.step_version.outputs.VERSION }}
           cat << EOF > README.md
-            # darkly-aur-ci
+            # vinyl-aur-ci
 
             Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
 
