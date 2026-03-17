@@ -11,4 +11,5 @@
   [![Vinyl AUR CI](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml/badge.svg)](https://github.com/DeltaCopy/vinyl-aur-ci/actions/workflows/vinyl-aur-ci.yml)
 
   ## Latest version
-  v6.5.3
+  <img src="https://img.shields.io/badge/vinyl-v6.5.3-orange" alt="vinyl-v6.5.3">
+  
