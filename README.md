@@ -1,6 +1,6 @@
-  # darkly-aur-ci
+  # vinyl-aur-ci
 
-  Scheduled pipeline (runs daily at ~12PM) to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
+  Scheduled pipeline to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
 
   Upstream repository:  https://github.com/ekaaty/vinyl-theme
 
