@@ -1,6 +1,6 @@
   # vinyl-aur-ci
 
-  Scheduled pipeline to publish updated PKGBUILD/s for darkly and darkly-bin AUR packages.
+  Scheduled pipeline to publish updated PKGBUILD for Vinyl AUR package.
 
   Upstream repository:  https://github.com/ekaaty/vinyl-theme
 
